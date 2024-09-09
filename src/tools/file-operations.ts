@@ -29,7 +29,12 @@ export function uploadFilesRecursively(directory: string): string[] {
             if (entry.isDirectory()) {
                 readDirectory(fullPath);
             } else {
+                if (fs.statSync(fullPath).size === 0) {
+                    return;
+                }
+
                 files.push(fullPath);
+                console.log('File founded:', fullPath)
             }
         });
     }

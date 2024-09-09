@@ -47,9 +47,11 @@ export async function uploadProjectFiles(directory: string, vectorStorePath: str
         const vectorStore = await openai.beta.vectorStores.create({
             name: "Project Files",
         });
-
+        console.log('Vector store created:', vectorStore.id);
+        console.log('Uploading files to vector store, this may take a while...');
         await openai.beta.vectorStores.fileBatches.uploadAndPoll(vectorStore.id, {files});
         vectorStoreId = vectorStore.id;
+        console.log('Files uploaded to vector store:', vectorStoreId);
 
         fs.writeFileSync(vectorStorePath, vectorStoreId);
     }

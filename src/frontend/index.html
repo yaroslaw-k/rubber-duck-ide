@@ -6,7 +6,6 @@
   <title>Rubber Duck</title>
   <style>
     #messages {
-      max-height: 300px;
       overflow-y: auto;
       border: 1px solid #ccc;
       padding: 10px;
@@ -24,105 +23,26 @@
       color: green;
     }
   </style>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<h1>Rubber Duck</h1>
-<div id="messages"></div>
-<div id="initialization" style="display: none;">
-  Initializing manager... Please wait.
-</div>
-<div id="path-input" style="display: none;">
-  <input type="text" id="directoryInput" placeholder="Enter the project directory">
-  <button onclick="initializeProject()">Initialize Project</button>
-</div>
-<div id="thread-input" style="display: none;">
-  <input type="text" id="promptInput" placeholder="Enter your prompt">
-  <button onclick="createThread()">Send Message</button>
+<div class="col-12 p-3">
+  <h1>Rubber Duck</h1>
+  <div id="messages" class="card"></div>
+  <div id="initialization" style="display: none;">
+    Initializing manager... Please wait.
+  </div>
+  <div id="path-input" style="display: none;">
+    <input type="text" id="directoryInput" placeholder="Enter the project directory">
+    <button onclick="initializeProject()">Initialize Project</button>
+  </div>
+  <div id="thread-input" style="display: none;">
+    <input type="text" class="w-50" id="promptInput" placeholder="Enter your prompt">
+    <button class="btn btn-primary" onclick="createThread()">Send Message</button>
+  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script>
-  const socket = io();
-  const messagesDiv = document.getElementById('messages');
-  const initializationDiv = document.getElementById('initialization');
-  const pathInputDiv = document.getElementById('path-input');
-  const threadInputDiv = document.getElementById('thread-input');
-
-  let assistantResponseBuffer = ''; // Для объединения ответа ассистента
-  let assistantMessagePre = null; // Ссылка на текущее сообщение ассистента
-
-  socket.on('manager-initialized', (assistantId, vectorStoreExists) => {
-    initializationDiv.style.display = 'none';
-    if (!vectorStoreExists) {
-      pathInputDiv.style.display = 'block';
-    } else {
-      threadInputDiv.style.display = 'block';
-    }
-  });
-
-  socket.on('assistant-created', assistantId => {
-    displayMessage('Assistant created with ID: ' + assistantId, 'assistant');
-    threadInputDiv.style.display = 'block';
-    pathInputDiv.style.display = 'none';
-  });
-
-  socket.on('files-uploaded', vectorStoreId => {
-    displayMessage('Files uploaded with Vector Store ID: ' + vectorStoreId, 'assistant');
-    threadInputDiv.style.display = 'block';
-    initializationDiv.style.display = 'none';
-  });
-
-  // Обработка сообщений с сервера
-  socket.on('message', (role, content) => {
-    if (role === 'assistant') {
-      if (!assistantMessagePre) {
-        assistantMessagePre = document.createElement('pre');
-        assistantMessagePre.classList.add('message', 'assistant');
-        messagesDiv.appendChild(assistantMessagePre);
-      }
-      assistantResponseBuffer += content; // Добавляем новые данные в буфер
-      assistantMessagePre.textContent = `assistant: ${assistantResponseBuffer}`; // Обновляем текст сообщения
-    } else {
-      displayMessage(content, role); // Для пользователя отображаем сразу
-    }
-  });
-
-  // Конец потока сообщений от ассистента
-  socket.on('message-end', () => {
-    assistantMessagePre = null; // Сбрасываем ссылку, чтобы следующее сообщение было новым
-    assistantResponseBuffer = ''; // Очищаем буфер
-  });
-
-  function startSession() {
-    socket.emit('start-session');
-    initializationDiv.style.display = 'block';
-  }
-
-  function initializeProject() {
-    const directory = document.getElementById('directoryInput').value;
-    const vectorStorePath = 'vectorStoreId.json';
-    socket.emit('initialize-project', directory, vectorStorePath);
-    pathInputDiv.style.display = 'none';
-    initializationDiv.style.display = 'block';
-  }
-
-  function createThread() {
-    const promptText = document.getElementById('promptInput').value;
-    displayMessage(promptText, 'user'); // Отображаем сообщение пользователя сразу
-    socket.emit('create-thread', promptText);
-  }
-
-  function displayMessage(content, role) {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message');
-    messageDiv.classList.add(role);
-    messageDiv.textContent = `${role}: ${content}`;
-    messagesDiv.appendChild(messageDiv);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight; // Скроллим вниз для новых сообщений
-  }
-
-  // Начало сессии при загрузке страницы
-  window.onload = startSession;
-</script>
+<script src="./rubber-duck.js"></script>
 </body>
 </html>
